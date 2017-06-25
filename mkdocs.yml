@@ -1,2 +1,6 @@
 site_name: Karnaugh Map Simplification Documentation
 theme: readthedocs
+pages:
+- [index.md]
+- [Boolean Algebra.md]
+- [Karnaugh Maps.md]
