@@ -11,7 +11,7 @@ The ultimate goal for this project is to become the standard industry tool in wo
 ## Download Links
 |Description   | Java Required  |  Link |
 |---|---|---|
-|Latest stable build   | JRE 1.6   |   | 
+|Latest stable build   | JRE 1.6   | [Download](http://www.mediafire.com/file/d3dd4utcqifuc4x/Karnaugh-v1.0.0.jar) | 
 |Latest stable source  | JDK 1.7   | [Download](https://github.com/MathBunny/karnaugh-map-simplifier/archive/v1.0.zip)  | 
 |Development source   | JDK 1.8  | [GitHub](github.com/MathBunny/karnaugh-map-simplifier)  | 
 
