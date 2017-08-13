@@ -23,7 +23,7 @@ When enumerating through the variable input combinations for the binded axis, we
 
 Thus, we get this wrapping that allows us to switch by only one bit. This provides us the core for how Karnaugh Maps work.
 
-## Groupings
+## Simple Groupings
 The main idea for how Karnaugh Maps can be used to simplify expressions is to group pairs of `1` values that are adjacent, and exploit the fact that each one has only a bit difference from another. 
 
 ![](http://i.imgur.com/y3GDjr3.png)
@@ -46,3 +46,119 @@ Therefore, the simplification is true.
 ```
 
 We can then extend this rule to work for rectangles and more!
+
+## Two Dimension Groupings
+Extending the idea of isolating changing bits that retain a consistent value, we can then generalize this to work in a higher dimension. Consider the following example:
+
+![](http://i.imgur.com/kAtXhaH.png)
+
+Letting `F(ABCD) = CELL`:
+```markdown
+F(0000) = 1
+F(0001) = 1
+F(0100) = 1
+F(0101) = 1
+```
+
+Observe that the bits do not change by one for all pairs of numbers, for example `{0000, 0101}` differ by two bits. However, we can take advantage of the fact that for any bit change horizontally or vertically, it's irrelvant what that bit is. More concretely, take a look at the following example.
+
+```markdown
+0000 0001
+0100 0101
+
+=> A'B'C'D' + A'B'C'D + A'BC'D' + A'BC'D
+Regardless of the B variable, we still get true for all products in the SOP expression.
+This is bounded vertically:
+=> A'C'D' + A'C'D + A'C'D' + A'C'D
+Regardless of the D variable, we still get true for all products in the SOP expression.
+This is bounded horizontally:
+=> A'C' + A'C' + A'C' + A'C'
+=> A'C' (1 + 1 + 1 + 1)
+=> A'C' (1)
+=> A'C'
+```
+
+Since the differences in bits needs to generalize throughout a binding of an axis, you can only have a binding of size `2^n` for a given axis. For example, `1x1, 1x2, 1x4, 2x2, 2x4, 4x4`. 
+
+## Disjoint Groupings
+Consider the following example:
+![](http://i.imgur.com/xFO7G27.png)
+
+The algorithm follows precisely as it did before, except that now the two groups are joined in the SOP expression. Letting `F(ABCD) = CELL`:
+```markdown
+F(0000) = 1
+F(0001) = 1
+F(1111) = 1
+F(1011) = 1
+```
+This yields the following:
+```markdown
+A'B'C'D' + A'B'C'D + ABCD + AB'CD
+Breaking down the expression:
+(A'B'C'D' + A'B'C'D) + (ABCD + AB'CD)
+=> (A'B'C'(D + D')) + (ACD(B + B'))
+=> (A'B'C') + (ACD)
+=> A'B'C' + ACD
+```
+Clearly this is the exact same process as before, but iterated throughout all the disjoint sets.
+
+## Overlapping Groupings
+Overlapping groupings become more complex, because there exist ambigious cases and sometimes what may appear to be a locally optimal solutuion is not a globally optimal solution.
+
+The general technique for evaluating for overlapping groups follows a greedy algorithm. Define an unvisited cell as a cell that has a value of `1` however it is currently not matched with a grouping yet. 
+
+Iterate through all the cells, and once you find a cell with `1`, if it is unvisited then find the largest possible square or rectangle such that each side length is a power of 2, where all the cells are `1` in its enclosed area. If there is a tie for size (ie, `1x4` vs `2x2`), assign the one that is a square (this is by convention). 
+
+Repeat this process for all remaining unvisited cells. Note: You can overlap the groupings with already visited nodes, but you never instantiate a new grouping unless the current node is unvisited.
+
+![](http://i.imgur.com/PJrkvD9.png)
+
+In this example, at `F(0000)`, we can create a grouping of size 2 (because 2 is the largest possible grouping, 3 is not a power of 2). We then iterate through to `F(0001)`, however `F(0001)` was already resolved to a grouping. For the latest active cell, `F(0011)` is not resolved to a grouping thus it's unvisited. The largest possible grouping is also of size 2, thus we create another group.
+
+To resolve the groupings into an SOP expression, we iterate through the groups and identify changing bits:
+
+```markdown
+Group #1 => F(ABCD) = [0000, 0001]
+Group #2 => F(ABCD) = [0001, 0011]
+
+For Group #1:
+0000 0001
+   ^    ^
+F(ABCD) = A'B'C'D' + A'B'C'D
+=> A'B'C'(D + D')
+=> A'B'C'
+
+For Group #2:
+0001 0011
+  ^    ^
+F(ABCD) = A'B'C'D + A'B'CD
+=> A'B'D(C' + C)
+=> A'B'D
+
+Now we add the two results:
+F(ABCD) = A'B'C' + A'B'D
+=> F(ABCD) = A'B'D + A'B'C' (by commutative property)
+```
+
+## Minimizing Group Count
+The following example will ilustrate how the greedy approach may occasionally produce too many groups. Consider the following example:
+
+![](http://i.imgur.com/dwilcia.png)
+
+This grouping state is optimal. However, consider adding a `1` to `F(1111)`.
+
+![](http://i.imgur.com/hmlsdT9.png)
+
+Following the previous algorithm, iterating top-bottom and left-right, when getting to `F(0110)`, the algorithm can choose to make the largest grouping. However, there are two possible groupings:
+
+```markdown
+Candidate #1:
+F(ABCD) = [0011, 0010, 0111, 0110]
+
+Candidate #2:
+F(ABCD) = [0111, 0110, 1111, 1110]
+```
+
+Both groupings have the same size, and are the same dimension. However, upon reaching `F(1110)`, another grouping needs to be instantiated, in which case if the first candidate grouping was created then we made a group that was not neccessary increasing the size of our SOP expression. 
+
+This illustrates the idea that this is a greedy algorithm, and does not always return the most simplified SOP expression. In later sections, algorithms illustrating a globally optimal algorithm will be discussed.
