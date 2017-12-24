@@ -80,7 +80,11 @@
         
             <li><a class="toctree-l3" href="#principle-of-inclusion-exclusion">Principle of Inclusion-Exclusion</a></li>
         
-            <li><a class="toctree-l3" href="#priorities-groupings-heuristic">Priorities Groupings + Heuristic</a></li>
+            <li><a class="toctree-l3" href="#priority-groupings-heuristic">Priority Groupings + Heuristic</a></li>
+        
+            <li><a class="toctree-l3" href="#approach-drawbacks">Approach Drawbacks</a></li>
+        
+            <li><a class="toctree-l3" href="#memory-optimization-cell-wise-priority-queues">Memory Optimization: Cell-Wise Priority Queues</a></li>
         
         </ul>
     
@@ -147,9 +151,15 @@ arr* = [0, 1, 1, 2, 3, 3, 4]
 <pre><code>sum = arr*[d+1][c+1] - arr*[d+1][c] - arr*[d][c+1] + arr*[b][a];
 </code></pre>
 
-<h2 id="priorities-groupings-heuristic">Priorities Groupings + Heuristic</h2>
-<p>Generating valid groupings becomes trivial upon being able to check the validity using 2D prefix sum arrays. Iterate through all the <code>(x,y)</code> pairs, then try all possible starting and ending coordinates. This operation will take O(`(NM)^2), where N = # of rows, M = # of columns.</p>
-<p>When deciding the final groupings, insert all of the candidate groupings as an encapsulated object into a priority queue. The key in the priority queue used will be the size of the grouping. If two groupings are equal in size, the one with the more "square" shape will get a higher priority.</p>
+<h2 id="priority-groupings-heuristic">Priority Groupings + Heuristic</h2>
+<p>Generating valid groupings becomes trivial upon being able to check the validity using 2D prefix sum arrays. Iterate through all the <code>(x,y)</code> pairs, then try all possible starting and ending coordinates. This operation will take <code>O((NM)^2)</code>, where <code>N</code> = # of rows, <code>M</code> = # of columns.</p>
+<p>When deciding the final groupings, insert all of the candidate groupings as an encapsulated object into a priority queue. The key in the priority queue used will be the size of the grouping. If two groupings are equal in size, the one with the more "square" shape will get a higher priority. The method for determining the "square-ness" of a candidate is the absolute difference in its width and height.</p>
+<h2 id="approach-drawbacks">Approach Drawbacks</h2>
+<p>The first drawback for this approach is speed. Despite being able to eliminate all solutions that don't satisfy the rectangular property of a grouping in <code>O(1)</code> time, we still exhaust all possibilities. Moreover, we also store the entire solution space in a priority queue which is very memory intensive.</p>
+<h2 id="memory-optimization-cell-wise-priority-queues">Memory Optimization: Cell-Wise Priority Queues</h2>
+<p>An important observation to make is that we are only interested in the largest possible grouping from each particular cell. This means that during each iteration of the algorithm, we should have at most <code>NxM</code> items in our priority queue, because the rest aren't useful! We can extend this idea by simply have a cell-wise 2D array that represents the grid used by cell, that is, a grouping that warrants its existence because it is the largest grouping to satisfy a given cell.</p>
+<p>This however adds a factor of time complexity, how do we know that a rectangular grouping is a maximum for any of the cells within the area it surrounds? One approach is to manually check each cell, but it isn't good because it takes <code>NxM</code> amount of time. </p>
+<p>Another approach is to ...  coming soon!</p>
               
             </div>
           </div>
